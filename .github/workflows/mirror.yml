@@ -2,10 +2,10 @@ name: Mirror
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev", "feat/*"]
 
 env:
-  MIRROR_URL: "git@github.com:EpitechMscProPromo2026/T-DEV-600-PAR_23"
+  MIRROR_URL: "git@github.com:EpitechMscProPromo2026/T-DEV-600-PAR_23.git"
 
 jobs:
   push_to_mirror:
