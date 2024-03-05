@@ -10,7 +10,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} />
-        {/* You can add more screens here */}
+        {/* You can add more screens heree */}
       </Stack.Navigator>
     </NavigationContainer>
   );
