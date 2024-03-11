@@ -12,10 +12,14 @@ import {
 import axios from "axios";
 import { API_KEY, TOKEN } from "@env";
 import { useNavigation } from "@react-navigation/native";
+import { RectButton, Swipeable } from "react-native-gesture-handler";
 
 export default function HomeScreen() {
   const [organizations, setOrganizations] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [swipeableRow, setSwipeableRow] = useState(null);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [selectedOrgForDelete, setSelectedOrgForDelete] = useState(null);
   const [newOrgName, setNewOrgName] = useState("");
 
   const navigation = useNavigation();
@@ -51,6 +55,37 @@ export default function HomeScreen() {
     }
   };
 
+  const confirmDeleteOrganization = async (organizationId) => {
+    try {
+      const response = await axios.delete(
+        `https://api.trello.com/1/organizations/${organizationId}?key=${API_KEY}&token=${TOKEN}`
+      );
+      if (response.status === 200) {
+        setOrganizations(
+          organizations.filter((org) => org.id !== organizationId)
+        );
+        setIsDeleteModalVisible(false);
+      }
+    } catch (error) {
+      console.error("Error deleting organization: ", error);
+    }
+  };
+
+  const renderRightActions = (organization) => {
+    return (
+      <RectButton
+        style={styles.deleteButton}
+        onPress={() => {
+          setSwipeableRow(null);
+          setSelectedOrgForDelete(organization.id);
+          setIsDeleteModalVisible(true);
+        }}
+      >
+        <Text style={styles.deleteButtonText}>Delete</Text>
+      </RectButton>
+    );
+  };
+
   useEffect(() => {
     fetchOrganizations();
   }, []);
@@ -64,19 +99,27 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>Create Workspace</Text>
       </TouchableOpacity>
       {organizations.map((organization, index) => (
-        <TouchableOpacity
+        <Swipeable
           key={index}
-          style={styles.card}
-          onPress={() =>
-            navigation.navigate("Boards", {
-              organizationId: organization.id,
-            })
-          }
+          ref={(ref) => setSwipeableRow((prev) => (prev ? prev : ref))}
+          renderRightActions={() => renderRightActions(organization)}
+          onSwipeableOpen={() => setSwipeableRow(null)}
+          onSwipeableClose={() => swipeableRow && swipeableRow.close()}
         >
-          <Text style={styles.cardTitle}>
-            {organization.displayName || "No Name"}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => {
+              swipeableRow && swipeableRow.close();
+              navigation.navigate("Boards", {
+                organizationId: organization.id,
+              });
+            }}
+          >
+            <Text style={styles.cardTitle}>
+              {organization.displayName || "No Name"}
+            </Text>
+          </TouchableOpacity>
+        </Swipeable>
       ))}
       <Modal
         animationType="slide"
@@ -93,6 +136,32 @@ export default function HomeScreen() {
           />
           <Button title="Create" onPress={createOrganization} />
           <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isDeleteModalVisible}
+        onRequestClose={() => setIsDeleteModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <Text>Are you sure you want to delete this workspace?</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonClose]}
+            onPress={() => {
+              if (selectedOrgForDelete)
+                confirmDeleteOrganization(selectedOrgForDelete);
+            }}
+          >
+            <Text style={styles.textStyle}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonClose]}
+            onPress={() => setIsDeleteModalVisible(false)}
+          >
+            <Text style={styles.textStyle}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </ScrollView>
@@ -157,5 +226,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
     padding: 10,
+  },
+  deleteButton: {
+    backgroundColor: "#FF3B30",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 90,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  deleteButtonText: {
+    color: "#fff",
+    padding: 20,
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
