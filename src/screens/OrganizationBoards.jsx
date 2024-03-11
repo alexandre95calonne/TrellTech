@@ -1,4 +1,3 @@
-// OrganizationBoardsScreen.js
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -14,20 +13,21 @@ import { useNavigation } from "@react-navigation/native";
 const OrganizationBoardsScreen = ({ route }) => {
   const { organizationId } = route.params;
   const [boards, setBoards] = useState([]);
+
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchBoards = async () => {
-      try {
-        const response = await axios.get(
-          `https://api.trello.com/1/organizations/${organizationId}/boards?key=${API_KEY}&token=${TOKEN}`
-        );
-        setBoards(response.data);
-      } catch (error) {
-        console.error("Error fetching boards:", error);
-      }
-    };
+  const fetchBoards = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.trello.com/1/organizations/${organizationId}/boards?key=${API_KEY}&token=${TOKEN}`
+      );
+      setBoards(response.data);
+    } catch (error) {
+      console.error("Error fetching boards:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchBoards();
   }, [organizationId]);
 
