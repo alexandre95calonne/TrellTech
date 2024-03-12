@@ -91,7 +91,7 @@ const OrganizationBoardsScreen = ({ route }) => {
         <View style={styles.modalView}>
           <TextInput
             style={styles.input}
-            placeholder="New Workspace Name"
+            placeholder="New Board Name"
             value={newBoardName}
             onChangeText={setNewBoardName}
           />
