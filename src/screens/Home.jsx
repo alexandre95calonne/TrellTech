@@ -21,6 +21,10 @@ export default function HomeScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedOrgForDelete, setSelectedOrgForDelete] = useState(null);
   const [newOrgName, setNewOrgName] = useState("");
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [selectedOrgForUpdate, setSelectedOrgForUpdate] = useState(null);
+  const [updateOrgName, setUpdateOrgName] = useState("");
+  const [updateOrgShortName, setUpdateOrgShortName] = useState("");
 
   const navigation = useNavigation();
 
@@ -55,6 +59,36 @@ export default function HomeScreen() {
     }
   };
 
+  const updateOrganization = async () => {
+    // Ensure both displayName and name are provided
+    if (updateOrgName.trim() && updateOrgShortName.trim()) {
+      try {
+        const url = `https://api.trello.com/1/organizations/${selectedOrgForUpdate}?key=${API_KEY}&token=${TOKEN}`;
+        const response = await axios.put(url, {
+          displayName: updateOrgName,
+          name: updateOrgShortName, // Ensure this is a unique short name
+        });
+
+        if (response.data) {
+          // Re-fetch organizations to update the UI
+          fetchOrganizations();
+          setIsUpdateModalVisible(false); // Close the modal on success
+          setUpdateOrgName(""); // Reset the update organization name state
+          setUpdateOrgShortName(""); // Reset the update short name state
+        }
+      } catch (error) {
+        // It's good to log the entire error to see if there's more detail
+        console.error(
+          "Error updating organization: ",
+          error.response?.data || error
+        );
+        alert(error.response?.data?.error || "An error occurred");
+      }
+    } else {
+      alert("Please enter both a display name and a unique short name.");
+    }
+  };
+
   const confirmDeleteOrganization = async (organizationId) => {
     try {
       const response = await axios.delete(
@@ -71,17 +105,30 @@ export default function HomeScreen() {
     }
   };
 
-  const renderRightActions = (organization) => {
+  const renderLeftActions = (progress, dragX, organization) => {
     return (
       <RectButton
-        style={styles.deleteButton}
+        style={[styles.actionButton, styles.editButton]}
         onPress={() => {
-          setSwipeableRow(null);
+          setSelectedOrgForUpdate(organization.id);
+          setIsUpdateModalVisible(true);
+        }}
+      >
+        <Text style={styles.actionButtonText}>Edit</Text>
+      </RectButton>
+    );
+  };
+
+  const renderRightActions = (progress, dragX, organization) => {
+    return (
+      <RectButton
+        style={[styles.actionButton, styles.deleteButton]}
+        onPress={() => {
           setSelectedOrgForDelete(organization.id);
           setIsDeleteModalVisible(true);
         }}
       >
-        <Text style={styles.deleteButtonText}>Delete</Text>
+        <Text style={styles.actionButtonText}>Delete</Text>
       </RectButton>
     );
   };
@@ -100,11 +147,13 @@ export default function HomeScreen() {
       </TouchableOpacity>
       {organizations.map((organization, index) => (
         <Swipeable
-          key={index}
-          ref={(ref) => setSwipeableRow((prev) => (prev ? prev : ref))}
-          renderRightActions={() => renderRightActions(organization)}
-          onSwipeableOpen={() => setSwipeableRow(null)}
-          onSwipeableClose={() => swipeableRow && swipeableRow.close()}
+          key={organization.id}
+          renderLeftActions={(progress, dragX) =>
+            renderLeftActions(progress, dragX, organization)
+          }
+          renderRightActions={(progress, dragX) =>
+            renderRightActions(progress, dragX, organization)
+          }
         >
           <TouchableOpacity
             style={styles.card}
@@ -162,6 +211,41 @@ export default function HomeScreen() {
           >
             <Text style={styles.textStyle}>Cancel</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isUpdateModalVisible}
+        onRequestClose={() => setIsUpdateModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TextInput
+              style={styles.input}
+              placeholder="New Workspace Display Name"
+              value={updateOrgName}
+              onChangeText={setUpdateOrgName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="New Workspace Short Name"
+              value={updateOrgShortName}
+              onChangeText={setUpdateOrgShortName}
+            />
+            <TouchableOpacity
+              style={[styles.button, styles.buttonUpdate]}
+              onPress={updateOrganization}
+            >
+              <Text style={styles.textStyle}>Update</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setIsUpdateModalVisible(false)}
+            >
+              <Text style={styles.textStyle}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </ScrollView>
@@ -239,6 +323,59 @@ const styles = StyleSheet.create({
     color: "#fff",
     padding: 20,
     fontWeight: "600",
+    fontSize: 16,
+  },
+  actionButton: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 15,
+  },
+  deleteButton: {
+    backgroundColor: "red",
+  },
+  updateButton: {
+    backgroundColor: "orange",
+  },
+  actionButtonText: {
+    color: "white",
+    fontSize: 16,
+    padding: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  actionButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    padding: 15,
+  },
+  editButton: {
+    backgroundColor: "orange",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+  },
+  actionButtonText: {
+    color: "white",
     fontSize: 16,
   },
 });
