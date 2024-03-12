@@ -12,14 +12,18 @@ import {
 import axios from "axios";
 import { API_KEY, TOKEN } from "@env";
 import { useNavigation } from "@react-navigation/native";
+import { RectButton, Swipeable } from "react-native-gesture-handler";
 
 
 const OrganizationBoardsScreen = ({ route }) => {
   // state
+  const { boardId } = route.params;  // [FEAT]: get organizationId from route.params
   const { organizationId } = route.params;
   const [boards, setBoards] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [selectedBoardForDelete, setSelectedBoardForDelete] = useState(null);
 
   const navigation = useNavigation();
 
@@ -55,11 +59,45 @@ const OrganizationBoardsScreen = ({ route }) => {
     }
   };
 
+  //[FEAT]: delete a board
+  const confirmDeleteBoard = async (boardId) => {
+    try {
+      const response = await axios.delete(
+        `https://api.trello.com/1/boards/${boardId}?key=${API_KEY}&token=${TOKEN}`
+      );
+      if (response.status === 200) {
+        setBoards(
+          boards.filter((brd) => brd.id !== boardId)
+        );
+        setIsDeleteModalVisible(false);
+      }
+    } catch (error) {
+      console.error("Error deleting board: ", error);
+    }
+  };
+
+  const renderRightActions = (progress, dragX, board) => {
+    return (
+      <RectButton
+        style={[styles.actionButton, styles.deleteButton]}
+        onPress={() => {
+          setSelectedBoardForDelete(board.id);
+          setIsDeleteModalVisible(true);
+        }}
+      >
+        <Text style={styles.actionButtonText}>Delete</Text>
+      </RectButton>
+    );
+  };
+
 
   useEffect(() => {
     fetchBoards();
   }, [organizationId]);
 
+
+
+  //[RETURN]: render the organization boards
   return (
     <ScrollView style={styles.container}>
       
@@ -71,6 +109,13 @@ const OrganizationBoardsScreen = ({ route }) => {
       </TouchableOpacity> 
 
       {boards.map((board, index) => (
+
+        <Swipeable
+        key={board.id}
+        renderRightActions={(progress, dragX) =>
+          renderRightActions(progress, dragX, board)
+        }
+      >
         <TouchableOpacity
           key={index}
           style={styles.card}
@@ -80,6 +125,7 @@ const OrganizationBoardsScreen = ({ route }) => {
         >
           <Text style={styles.cardTitle}>{board.name}</Text>
         </TouchableOpacity>
+        </Swipeable>
       ))}
       
       <Modal
@@ -101,10 +147,45 @@ const OrganizationBoardsScreen = ({ route }) => {
           <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isDeleteModalVisible}
+        onRequestClose={() => setIsDeleteModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <Text>Are you sure you want to delete this Board?</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonClose]}
+            onPress={() => {
+              if (selectedBoardForDelete)
+                confirmDeleteBoard(selectedBoardForDelete);
+            }}
+          >
+            <Text style={styles.textStyle}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonClose]}
+            onPress={() => setIsDeleteModalVisible(false)}
+          >
+            <Text style={styles.textStyle}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     
     </ScrollView>
   );
 };
+
+
+
+
+
+
+
+
+// [CSS]: styling
 
 const styles = StyleSheet.create({
   container: {
@@ -164,6 +245,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
     padding: 10,
+  },
+  actionButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    padding: 15,
+  },
+  editButton: {
+    backgroundColor: "orange",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+  },
+  actionButtonText: {
+    color: "white",
+    fontSize: 16,
   },
 });
 
