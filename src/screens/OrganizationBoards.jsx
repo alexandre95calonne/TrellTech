@@ -78,6 +78,8 @@ const OrganizationBoardsScreen = ({ route }) => {
 
   const renderRightActions = (progress, dragX, board) => {
     return (
+      
+      
       <RectButton
         style={[styles.actionButton, styles.deleteButton]}
         onPress={() => {
@@ -85,7 +87,7 @@ const OrganizationBoardsScreen = ({ route }) => {
           setIsDeleteModalVisible(true);
         }}
       >
-        <Text style={styles.actionButtonText}>Delete</Text>
+        <Text style={styles.actionButtonText}>Del</Text>
       </RectButton>
     );
   };
