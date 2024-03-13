@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { API_KEY, TOKEN } from "@env";
+import { RectButton, Swipeable } from "react-native-gesture-handler";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -23,6 +24,9 @@ const BoardListsScreen = ({ route }) => {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardDetails, setCardDetails] = useState(null);
   const [newListName, setNewListName] = useState("");
+  //[FEAT]: delete list
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [listToDelete, setListToDelete] = useState(null);
 
 
   const fetchCardDetails = async (cardId) => {
@@ -76,6 +80,19 @@ const BoardListsScreen = ({ route }) => {
     }
   };
 
+  const deleteList = async () => {
+    try {
+      await axios.delete(`https://api.trello.com/1/lists/${listToDelete}?key=${API_KEY}&token=${TOKEN}`);
+      setLists(lists.filter(list => list.id !== listToDelete));
+      setListToDelete(null);
+      setIsDeleteModalVisible(false);
+    } catch (error) {
+      console.error("Error deleting list: ", error);
+    }
+  };
+  
+
+
   useEffect(() => {
     fetchListsAndCards();
   }, [boardId]);
@@ -118,6 +135,7 @@ const BoardListsScreen = ({ route }) => {
       {lists.map((list, index) => (
         <View key={index} style={styles.listCard}>
           <Text style={styles.listTitle}>{list.name}</Text>
+          <Button title="Delete List" onPress={() => { setListToDelete(list.id); setIsDeleteModalVisible(true); }} />
           <ScrollView style={styles.cardsContainer}>
             {list.cards?.map((card, cardIndex) => (
               <TouchableOpacity
@@ -155,10 +173,20 @@ const BoardListsScreen = ({ route }) => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isDeleteModalVisible}
+      onRequestClose={() => setIsDeleteModalVisible(false)}
+      >
+      <View style={styles.modalView}>
+        <Text>Are you sure you want to delete this list?</Text>
+        <Button title="Yes, delete it" onPress={deleteList} />
+        <Button title="No, cancel" onPress={() => setIsDeleteModalVisible(false)} />
+      </View>
+     </Modal>
       
-
-  
-
     </ScrollView>
     </ScrollView>
   );
