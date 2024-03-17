@@ -38,8 +38,8 @@ Cette commande crée une version optimisé dans le dossier build que vous pouvez
 
 ### Documentation du code
 
-La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant docs/index.html dans votre navigateur.
+La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant [documentation]().
 
 ### Contribuer
 
-Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier CONTRIBUTING.md.
+Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [CONTRIBUTING](CONTRIBUTING.md).
