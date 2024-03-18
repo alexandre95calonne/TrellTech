@@ -14,19 +14,19 @@ import { API_KEY, TOKEN } from "@env";
 import { useNavigation } from "@react-navigation/native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 
-
 const OrganizationBoardsScreen = ({ route }) => {
   // state
-  const { boardId } = route.params;  // [FEAT]: get organizationId from route.params
   const { organizationId } = route.params;
   const [boards, setBoards] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedBoardForDelete, setSelectedBoardForDelete] = useState(null);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [selectedBoardForUpdate, setSelectedBoardForUpdate] = useState(null);
+  const [updateBoardName, setUpdateBoardName] = useState("");
 
   const navigation = useNavigation();
-
 
   const fetchBoards = async () => {
     try {
@@ -38,7 +38,7 @@ const OrganizationBoardsScreen = ({ route }) => {
       console.error("Error fetching boards:", error);
     }
   };
-  
+
   //[FEAT]: create a board
   const createBoard = async () => {
     if (newBoardName.trim()) {
@@ -60,6 +60,34 @@ const OrganizationBoardsScreen = ({ route }) => {
     }
   };
 
+  const updateBoard = async () => {
+    if (updateBoardName.trim() && selectedBoardForUpdate) {
+      try {
+        const response = await axios.put(
+          `https://api.trello.com/1/boards/${selectedBoardForUpdate}?key=${API_KEY}&token=${TOKEN}`,
+          {
+            name: updateBoardName,
+          }
+        );
+        if (response.data) {
+          const updatedBoards = boards.map((board) => {
+            if (board.id === selectedBoardForUpdate) {
+              return { ...board, name: updateBoardName };
+            }
+            return board;
+          });
+          setBoards(updatedBoards);
+          setIsUpdateModalVisible(false);
+          setUpdateBoardName("");
+        }
+      } catch (error) {
+        console.error("Error updating board: ", error);
+      }
+    } else {
+      alert("Please enter a new board name.");
+    }
+  };
+
   //[FEAT]: delete a board
   const confirmDeleteBoard = async (boardId) => {
     try {
@@ -67,9 +95,7 @@ const OrganizationBoardsScreen = ({ route }) => {
         `https://api.trello.com/1/boards/${boardId}?key=${API_KEY}&token=${TOKEN}`
       );
       if (response.status === 200) {
-        setBoards(
-          boards.filter((brd) => brd.id !== boardId)
-        );
+        setBoards(boards.filter((brd) => brd.id !== boardId));
         setIsDeleteModalVisible(false);
       }
     } catch (error) {
@@ -77,10 +103,23 @@ const OrganizationBoardsScreen = ({ route }) => {
     }
   };
 
+  const renderLeftActions = (progress, dragX, board) => {
+    return (
+      <RectButton
+        style={[styles.actionButton, styles.editButton]}
+        onPress={() => {
+          setSelectedBoardForUpdate(board.id);
+          setUpdateBoardName(board.name);
+          setIsUpdateModalVisible(true);
+        }}
+      >
+        <Text style={styles.actionButtonText}>Edit</Text>
+      </RectButton>
+    );
+  };
+
   const renderRightActions = (progress, dragX, board) => {
     return (
-      
-      
       <RectButton
         style={[styles.actionButton, styles.deleteButton]}
         onPress={() => {
@@ -93,44 +132,40 @@ const OrganizationBoardsScreen = ({ route }) => {
     );
   };
 
-
   useEffect(() => {
     fetchBoards();
   }, [organizationId]);
 
-
-
   //[RETURN]: render the organization boards
   return (
     <ScrollView style={styles.container}>
-      
       <TouchableOpacity
         style={styles.button}
         onPress={() => setIsModalVisible(true)}
       >
         <Text style={styles.buttonText}>Create Board</Text>
-      </TouchableOpacity> 
-
+      </TouchableOpacity>
       {boards.map((board, index) => (
-
         <Swipeable
-        key={board.id}
-        renderRightActions={(progress, dragX) =>
-          renderRightActions(progress, dragX, board)
-        }
-      >
-        <TouchableOpacity
-          key={index}
-          style={styles.card}
-          onPress={() =>
-            navigation.navigate("BoardLists", { boardId: board.id })
+          key={board.id}
+          renderRightActions={(progress, dragX) =>
+            renderRightActions(progress, dragX, board)
+          }
+          renderLeftActions={(progress, dragX) =>
+            renderLeftActions(progress, dragX, board)
           }
         >
-          <Text style={styles.cardTitle}>{board.name}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate("BoardLists", { boardId: board.id })
+            }
+          >
+            <Text style={styles.cardTitle}>{board.name}</Text>
+          </TouchableOpacity>
         </Swipeable>
       ))}
-      
       <Modal
         animationType="slide"
         transparent={true}
@@ -140,9 +175,7 @@ const OrganizationBoardsScreen = ({ route }) => {
         <View style={styles.modalView}>
           <TextInput
             style={styles.input}
-
             placeholder="New Workspace Name"
-
             value={newBoardName}
             onChangeText={setNewBoardName}
           />
@@ -150,7 +183,6 @@ const OrganizationBoardsScreen = ({ route }) => {
           <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
         </View>
       </Modal>
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -176,17 +208,38 @@ const OrganizationBoardsScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </Modal>
-    
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isUpdateModalVisible}
+        onRequestClose={() => {
+          setIsUpdateModalVisible(false);
+          setSelectedBoardForUpdate(null);
+          setUpdateBoardName("");
+        }}
+      >
+        <View style={styles.modalView}>
+          <TextInput
+            style={styles.input}
+            placeholder="Edit Board Name"
+            value={updateBoardName}
+            onChangeText={setUpdateBoardName}
+          />
+          <Button title="Update Board" onPress={updateBoard} />
+          <Button
+            title="Cancel"
+            onPress={() => {
+              setIsUpdateModalVisible(false);
+              setSelectedBoardForUpdate(null);
+              setUpdateBoardName("");
+            }}
+          />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
-
-
-
-
-
-
-
 
 // [CSS]: styling
 
