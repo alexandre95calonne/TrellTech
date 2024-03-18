@@ -8,17 +8,16 @@
   - [Description](#description)
   - [Équipe](#équipe)
     - [La Gestion](#la-gestion)
-  - [Diagrammes UML](#diagrammes-uml)
   - [Prérequis](#prérequis)
   - [Installation](#installation)
   - [Développement](#développement)
-    - [Production](#production)
-    - [Documentation du code](#documentation-du-code)
-    - [Contribuer](#contribuer)
+  - [Production](#production)
+  - [Documentation du code](#documentation-du-code)
+  - [Contribuer](#contribuer)
 
 ## Description
 
-Ce projet est une application mobile développé avec React-Native qui utilise l'API Trello pour afficher les tableaux d'une organisation.
+Ce projet est une application mobile développé avec React-Native qui utilise l'API Trello pour afficher les tableaux d'une organisation
 
 ## Équipe
 
@@ -28,7 +27,6 @@ Ce projet est une application mobile développé avec React-Native qui utilise l
 ### La Gestion
 La gestion du projet et des taches s'est faite de manière collaborative en utilisant Trello et Github Project.
 
-## Diagrammes UML
 
 ## Prérequis
 
@@ -53,20 +51,21 @@ Pour lancer le projet en mode développement, utilisez la commande suivante :
 npm start
 ```
 
-### Production 
+## Production 
 
 Pour construire le projet pour la production, utilisez la commande suivante : 
 
 ```bash
 npm build android
+# ou
 npm build ios 
 ```
 Cette commande crée une version optimisé dans le dossier build que vous pouvez deployer dans un serveur de production.
 
-### Documentation du code
+## Documentation du code
 
-La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant [Documentation]().
+La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant [Documentation](docs/Documentation.md).
 
-### Contribuer
+## Contribuer
 
 Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [Contributing](docs/CONTRIBUTING.md) en repectant notre [Code de Conduite](docs/CODE_OF_CONDUCT.md). Nous attendons de tous nos contributeurs qu'ils respectent ce code.

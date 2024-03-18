@@ -1,4 +1,32 @@
-import React, { useEffect, useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: OrganizationBoards.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: OrganizationBoards.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -36,7 +64,7 @@ const OrganizationBoardsScreen = ({ route }) => {
   const fetchBoards = async () => {
     try {
       const response = await axios.get(
-        `https://api.trello.com/1/organizations/${organizationId}/boards?key=${API_KEY}&token=${TOKEN}`
+        `https://api.trello.com/1/organizations/${organizationId}/boards?key=${API_KEY}&amp;token=${TOKEN}`
       );
       setBoards(response.data);
     } catch (error) {
@@ -58,7 +86,7 @@ const OrganizationBoardsScreen = ({ route }) => {
         const response = await axios.post(
           `https://api.trello.com/1/boards/?name=${encodeURIComponent(
             newBoardName
-          )}&key=${API_KEY}&token=${TOKEN}`
+          )}&amp;key=${API_KEY}&amp;token=${TOKEN}`
         );
         if (response.data) {
           setBoards([...boards, response.data]);
@@ -83,7 +111,7 @@ const OrganizationBoardsScreen = ({ route }) => {
   const confirmDeleteBoard = async (boardId) => {
     try {
       const response = await axios.delete(
-        `https://api.trello.com/1/boards/${boardId}?key=${API_KEY}&token=${TOKEN}`
+        `https://api.trello.com/1/boards/${boardId}?key=${API_KEY}&amp;token=${TOKEN}`
       );
       if (response.status === 200) {
         setBoards(
@@ -106,15 +134,15 @@ const OrganizationBoardsScreen = ({ route }) => {
  */
   const renderRightActions = (progress, dragX, board) => {
     return (
-      <RectButton
+      &lt;RectButton
         style={[styles.actionButton, styles.deleteButton]}
         onPress={() => {
           setSelectedBoardForDelete(board.id);
           setIsDeleteModalVisible(true);
         }}
       >
-        <Text style={styles.actionButtonText}>Del</Text>
-      </RectButton>
+        &lt;Text style={styles.actionButtonText}>Del&lt;/Text>
+      &lt;/RectButton>
     );
   };
 
@@ -127,43 +155,43 @@ const OrganizationBoardsScreen = ({ route }) => {
 
   //[RETURN]: render the organization boards
   return (
-    <ScrollView style={styles.container}>
+    &lt;ScrollView style={styles.container}>
       
-      <TouchableOpacity
+      &lt;TouchableOpacity
         style={styles.button}
         onPress={() => setIsModalVisible(true)}
       >
-        <Text style={styles.buttonText}>Create Board</Text>
-      </TouchableOpacity> 
+        &lt;Text style={styles.buttonText}>Create Board&lt;/Text>
+      &lt;/TouchableOpacity> 
 
       {boards.map((board, index) => (
 
-        <Swipeable
+        &lt;Swipeable
         key={board.id}
         renderRightActions={(progress, dragX) =>
           renderRightActions(progress, dragX, board)
         }
       >
-        <TouchableOpacity
+        &lt;TouchableOpacity
           key={index}
           style={styles.card}
           onPress={() =>
             navigation.navigate("BoardLists", { boardId: board.id })
           }
         >
-          <Text style={styles.cardTitle}>{board.name}</Text>
-        </TouchableOpacity>
-        </Swipeable>
+          &lt;Text style={styles.cardTitle}>{board.name}&lt;/Text>
+        &lt;/TouchableOpacity>
+        &lt;/Swipeable>
       ))}
       
-      <Modal
+      &lt;Modal
         animationType="slide"
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}
       >
-        <View style={styles.modalView}>
-          <TextInput
+        &lt;View style={styles.modalView}>
+          &lt;TextInput
             style={styles.input}
 
             placeholder="New Workspace Name"
@@ -171,38 +199,38 @@ const OrganizationBoardsScreen = ({ route }) => {
             value={newBoardName}
             onChangeText={setNewBoardName}
           />
-          <Button title="Create Board" onPress={createBoard} />
-          <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
-        </View>
-      </Modal>
+          &lt;Button title="Create Board" onPress={createBoard} />
+          &lt;Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+        &lt;/View>
+      &lt;/Modal>
 
-      <Modal
+      &lt;Modal
         animationType="slide"
         transparent={true}
         visible={isDeleteModalVisible}
         onRequestClose={() => setIsDeleteModalVisible(false)}
       >
-        <View style={styles.modalView}>
-          <Text>Are you sure you want to delete this Board?</Text>
-          <TouchableOpacity
+        &lt;View style={styles.modalView}>
+          &lt;Text>Are you sure you want to delete this Board?&lt;/Text>
+          &lt;TouchableOpacity
             style={[styles.button, styles.buttonClose]}
             onPress={() => {
               if (selectedBoardForDelete)
                 confirmDeleteBoard(selectedBoardForDelete);
             }}
           >
-            <Text style={styles.textStyle}>Delete</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            &lt;Text style={styles.textStyle}>Delete&lt;/Text>
+          &lt;/TouchableOpacity>
+          &lt;TouchableOpacity
             style={[styles.button, styles.buttonClose]}
             onPress={() => setIsDeleteModalVisible(false)}
           >
-            <Text style={styles.textStyle}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+            &lt;Text style={styles.textStyle}>Cancel&lt;/Text>
+          &lt;/TouchableOpacity>
+        &lt;/View>
+      &lt;/Modal>
     
-    </ScrollView>
+    &lt;/ScrollView>
   );
 };
 
@@ -293,3 +321,26 @@ const styles = StyleSheet.create({
 });
 
 export default OrganizationBoardsScreen;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#confirmDeleteBoard">confirmDeleteBoard</a></li><li><a href="global.html#createBoard">createBoard</a></li><li><a href="global.html#fetchBoards">fetchBoards</a></li><li><a href="global.html#renderRightActions">renderRightActions</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Mar 18 2024 06:40:00 GMT+0100 (heure normale d’Europe centrale)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
