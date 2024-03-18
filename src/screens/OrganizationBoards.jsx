@@ -38,7 +38,8 @@ const OrganizationBoardsScreen = ({ route }) => {
       console.error("Error fetching boards:", error);
     }
   };
-
+  
+  //[FEAT]: create a board
   const createBoard = async () => {
     if (newBoardName.trim()) {
       try {

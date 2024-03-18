@@ -1,6 +1,6 @@
 # PROJET TRELLTECH 
 
-![Epitech Technology](Images/logoEpitech.png "Logo EPITECH")
+![Epitech Technology](images/logoEpitech.png "Logo EPITECH")
 
 ## Table des Matières
 - [PROJET TRELLTECH](#projet-trelltech)
@@ -34,10 +34,10 @@ La gestion du projet et des taches s'est faite de manière collaborative en util
 
 Avant de commencer, vous aurez besoin de :
 
-- Node.js et npm installés sur votre machine.
-- Un compte Trello avec une clé API et un token.
-- Expo installé sur votre mobile ou de github project pour tester l'application sur Android et iOS.
-- Postman pour tester les requêtes API.
+- [Node.js](https://nodejs.org/en) et [npm](https://www.npmjs.com/) installés sur votre machine.
+- Un compte [Trello](https://trello.com) avec une clé API et un token.
+- [Expo Go](https://expo.dev/go) installé sur votre mobile pour tester l'application sur Android et iOS.
+- [Postman](https://www.postman.com/) pour tester les requêtes API.
 
 ## Installation
 
@@ -56,16 +56,17 @@ npm start
 ### Production 
 
 Pour construire le projet pour la production, utilisez la commande suivante : 
+
 ```bash
-npm build android # pour Android
-npm build ios # pour IOS
+npm build android
+npm build ios 
 ```
 Cette commande crée une version optimisé dans le dossier build que vous pouvez deployer dans un serveur de production.
 
 ### Documentation du code
 
-La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant [documentation]().
+La documentation du code est générée avec JSDoc. Vous pouvez la consulter en ouvrant [Documentation]().
 
 ### Contribuer
 
-Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [CONTRIBUTING](CONTRIBUTING.md).
+Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [Contributing](docs/CONTRIBUTING.md) en repectant notre [Code de Conduite](docs/CODE_OF_CONDUCT.md). Nous attendons de tous nos contributeurs qu'ils respectent ce code.

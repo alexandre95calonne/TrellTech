@@ -2,10 +2,6 @@
 
 Nous apprécions votre intérêt à contribuer à Mon Projet ! Voici quelques directives pour vous aider à démarrer.
 
-## Code de conduite
-
-Avant de contribuer, veuillez lire notre [Code de conduite](CODE_OF_CONDUCT.md). Nous attendons de tous nos contributeurs qu'ils respectent ce code.
-
 ## Signaler des bugs
 
 Si vous trouvez un bug, veuillez créer une issue sur GitHub décrivant le bug, comment le reproduire, et l'impact qu'il a sur le projet.
@@ -24,10 +20,6 @@ Si vous souhaitez contribuer du code, voici comment procéder :
 4. Assurez-vous que les tests passent.
 5. Assurez-vous que votre code passe le linter.
 6. Soumettez votre pull request !
-
-## Style de code
-
-Veuillez respecter le style de code existant. Nous utilisons [ESLint](https://eslint.org/) pour le linting du code.
 
 ## Questions
 
