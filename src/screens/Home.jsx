@@ -60,32 +60,40 @@ export default function HomeScreen() {
   };
 
   const updateOrganization = async () => {
-    // Ensure both displayName and name are provided
-    if (updateOrgName.trim() && updateOrgShortName.trim()) {
+    if (
+      selectedOrgForUpdate &&
+      updateOrgName.trim() &&
+      updateOrgShortName.trim()
+    ) {
       try {
-        const url = `https://api.trello.com/1/organizations/${selectedOrgForUpdate}?key=${API_KEY}&token=${TOKEN}`;
-        const response = await axios.put(url, {
-          displayName: updateOrgName,
-          name: updateOrgShortName, // Ensure this is a unique short name
-        });
-
+        const response = await axios.put(
+          `https://api.trello.com/1/organizations/${selectedOrgForUpdate}?key=${API_KEY}&token=${TOKEN}`,
+          {
+            displayName: updateOrgName,
+            name: updateOrgShortName,
+          }
+        );
         if (response.data) {
-          // Re-fetch organizations to update the UI
-          fetchOrganizations();
-          setIsUpdateModalVisible(false); // Close the modal on success
-          setUpdateOrgName(""); // Reset the update organization name state
-          setUpdateOrgShortName(""); // Reset the update short name state
+          const updatedOrgs = organizations.map((org) => {
+            if (org.id === selectedOrgForUpdate) {
+              return {
+                ...org,
+                displayName: updateOrgName,
+                name: updateOrgShortName,
+              };
+            }
+            return org;
+          });
+          setOrganizations(updatedOrgs);
+          setIsUpdateModalVisible(false);
         }
       } catch (error) {
-        // It's good to log the entire error to see if there's more detail
-        console.error(
-          "Error updating organization: ",
-          error.response?.data || error
-        );
-        alert(error.response?.data?.error || "An error occurred");
+        console.error("Error updating organization: ", error);
       }
     } else {
-      alert("Please enter both a display name and a unique short name.");
+      alert(
+        "Please enter both a new display name and a new name for the workspace."
+      );
     }
   };
 
@@ -239,6 +247,7 @@ export default function HomeScreen() {
             >
               <Text style={styles.textStyle}>Update</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => setIsUpdateModalVisible(false)}
