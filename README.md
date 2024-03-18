@@ -69,4 +69,4 @@ La documentation du code est générée avec JSDoc. Vous pouvez la consulter en 
 
 ### Contribuer
 
-Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [Contributing](CONTRIBUTING.md) en repectant notre [Code de Conduite](CODE_OF_CONDUCT.md). Nous attendons de tous nos contributeurs qu'ils respectent ce code.
+Si vous souhaitez contribuer à ce projet, veuillez consulter le fichier [Contributing](docs/CONTRIBUTING.md) en repectant notre [Code de Conduite](docs/CODE_OF_CONDUCT.md). Nous attendons de tous nos contributeurs qu'ils respectent ce code.
