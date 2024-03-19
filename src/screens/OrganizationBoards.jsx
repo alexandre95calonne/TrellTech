@@ -30,12 +30,24 @@ const OrganizationBoardsScreen = ({ route }) => {
 
   const fetchBoards = async () => {
     try {
-      const response = await axios.get(
+      const boardsResponse = await axios.get(
         `https://api.trello.com/1/organizations/${organizationId}/boards?key=${API_KEY}&token=${TOKEN}`
       );
-      setBoards(response.data);
+      const boardsData = boardsResponse.data;
+
+      // Fetch members for each board
+      const boardsWithMembers = await Promise.all(
+        boardsData.map(async (board) => {
+          const membersResponse = await axios.get(
+            `https://api.trello.com/1/boards/${board.id}/members?key=${API_KEY}&token=${TOKEN}`
+          );
+          return { ...board, members: membersResponse.data }; // Attach members to the board object
+        })
+      );
+
+      setBoards(boardsWithMembers);
     } catch (error) {
-      console.error("Error fetching boards:", error);
+      console.error("Error fetching boards or members:", error);
     }
   };
 
@@ -163,9 +175,13 @@ const OrganizationBoardsScreen = ({ route }) => {
             }
           >
             <Text style={styles.cardTitle}>{board.name}</Text>
+            <Text style={styles.cardSubtitle}>
+              Members: {board.members.length}
+            </Text>
           </TouchableOpacity>
         </Swipeable>
       ))}
+
       <Modal
         animationType="slide"
         transparent={true}

@@ -30,12 +30,24 @@ export default function HomeScreen() {
 
   const fetchOrganizations = async () => {
     try {
-      const response = await axios.get(
+      const orgsResponse = await axios.get(
         `https://api.trello.com/1/members/me/organizations?key=${API_KEY}&token=${TOKEN}`
       );
-      setOrganizations(response.data);
+      const orgsData = orgsResponse.data;
+
+      // Fetch members for each organization
+      const orgsWithMembers = await Promise.all(
+        orgsData.map(async (org) => {
+          const membersResponse = await axios.get(
+            `https://api.trello.com/1/organizations/${org.id}/members?key=${API_KEY}&token=${TOKEN}`
+          );
+          return { ...org, members: membersResponse.data }; // Attach members to the organization object
+        })
+      );
+
+      setOrganizations(orgsWithMembers);
     } catch (error) {
-      console.error("Error fetching data: ", error);
+      console.error("Error fetching organizations or members: ", error);
     }
   };
 
@@ -175,9 +187,14 @@ export default function HomeScreen() {
             <Text style={styles.cardTitle}>
               {organization.displayName || "No Name"}
             </Text>
+            {/* Display the number of members here */}
+            <Text style={styles.cardSubtitle}>
+              Members: {organization.members.length}
+            </Text>
           </TouchableOpacity>
         </Swipeable>
       ))}
+
       <Modal
         animationType="slide"
         transparent={true}

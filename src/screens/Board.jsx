@@ -13,27 +13,61 @@ import {
 import axios from "axios";
 import { API_KEY, TOKEN } from "@env";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
+import { Picker } from "@react-native-picker/picker";
 
 const windowWidth = Dimensions.get("window").width;
 
 const BoardListsScreen = ({ route }) => {
   const { boardId } = route.params;
+  const [orgId, setOrgId] = useState(null);
   const [lists, setLists] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalForCreatingList, setIsModalForCreatingList] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState(null); //[FEAT]: Create a card
+  const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardDetails, setCardDetails] = useState(null);
   const [newListName, setNewListName] = useState("");
-  //[FEAT]: delete list
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [listToDelete, setListToDelete] = useState(null);
-  //[FEAT]: create a card
-  const [isModalForCreatingCardVisible, setIsModalForCreatingCardVisible] = useState(false);
+  const [isModalForCreatingCardVisible, setIsModalForCreatingCardVisible] =
+    useState(false);
   const [newCardName, setNewCardName] = useState("");
   const [listForNewCard, setListForNewCard] = useState(null);
-  //[FEAT]: delete a card
   const [cardToDelete, setCardToDelete] = useState(null);
+  const [editableCardDetails, setEditableCardDetails] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
 
+  console.log(members);
+
+  const fetchBoardDetails = async () => {
+    try {
+      const boardResponse = await axios.get(
+        `https://api.trello.com/1/boards/${boardId}?key=${API_KEY}&token=${TOKEN}&fields=name,idOrganization`
+      );
+      const orgId = boardResponse.data.idOrganization;
+
+      setOrgId(orgId);
+    } catch (error) {
+      console.error("Error fetching board details:", error);
+    }
+  };
+
+  const fetchOrgMembers = async () => {
+    if (!orgId) {
+      console.log("Organization ID is not set.");
+      return;
+    }
+
+    try {
+      const membersResponse = await axios.get(
+        `https://api.trello.com/1/organizations/${orgId}/members?key=${API_KEY}&token=${TOKEN}`
+      );
+      setMembers(membersResponse.data);
+    } catch (error) {
+      console.error("Error fetching organization members:", error);
+    }
+  };
 
   const fetchCardDetails = async (cardId) => {
     try {
@@ -41,9 +75,27 @@ const BoardListsScreen = ({ route }) => {
         `https://api.trello.com/1/cards/${cardId}?key=${API_KEY}&token=${TOKEN}`
       );
       setCardDetails(response.data);
+      setEditableCardDetails(response.data);
+      setHasChanges(false);
       setIsModalVisible(true);
     } catch (error) {
       console.error("Error fetching card details:", error);
+    }
+  };
+
+  const saveCardDetails = async () => {
+    try {
+      const response = await axios.put(
+        `https://api.trello.com/1/cards/${editableCardDetails.id}?key=${API_KEY}&token=${TOKEN}`,
+        {
+          name: editableCardDetails.name,
+        }
+      );
+      setCardDetails(response.data);
+      setHasChanges(false);
+      await fetchListsAndCards();
+    } catch (error) {
+      console.error("Error saving card details: ", error);
     }
   };
 
@@ -86,7 +138,6 @@ const BoardListsScreen = ({ route }) => {
     }
   };
 
-  //[FEAT]: delete a list
   const confirmDeleteList = async (listId) => {
     try {
       const response = await axios.delete(
@@ -96,13 +147,11 @@ const BoardListsScreen = ({ route }) => {
         setLists(lists.filter((list) => list.id !== listId));
         setIsDeleteModalVisible(false);
       }
-    } catch(error){
-      console.error("Error deleting list: ", error);  
+    } catch (error) {
+      console.error("Error deleting list: ", error);
     }
   };
-     
 
-  // [FEAT]: create a card
   const createCard = async () => {
     if (newCardName.trim() && listForNewCard) {
       try {
@@ -112,7 +161,7 @@ const BoardListsScreen = ({ route }) => {
           )}&idList=${listForNewCard}&key=${API_KEY}&token=${TOKEN}`
         );
         if (response.data) {
-          const updatedLists = lists.map(list => {
+          const updatedLists = lists.map((list) => {
             if (list.id === listForNewCard) {
               list.cards = [...list.cards, response.data];
             }
@@ -128,8 +177,7 @@ const BoardListsScreen = ({ route }) => {
       alert("Please enter a card name and select a list.");
     }
   };
-  
-  //[FEAT]: delete a card
+
   const deleteCard = async () => {
     if (cardToDelete) {
       try {
@@ -137,8 +185,8 @@ const BoardListsScreen = ({ route }) => {
           `https://api.trello.com/1/cards/${cardToDelete}?key=${API_KEY}&token=${TOKEN}`
         );
         if (response.status === 200 || response.status === 204) {
-          const updatedLists = lists.map(list => {
-            list.cards = list.cards.filter(card => card.id !== cardToDelete);
+          const updatedLists = lists.map((list) => {
+            list.cards = list.cards.filter((card) => card.id !== cardToDelete);
             return list;
           });
           setLists(updatedLists);
@@ -150,22 +198,26 @@ const BoardListsScreen = ({ route }) => {
     }
   };
 
-
   useEffect(() => {
     fetchListsAndCards();
+    fetchBoardDetails();
   }, [boardId]);
+
+  useEffect(() => {
+    if (orgId) {
+      fetchOrgMembers();
+    }
+  }, [orgId]);
 
   return (
     <ScrollView style={styles.container}>
-
-    
       <TouchableOpacity
         style={styles.button}
         onPress={() => setIsModalForCreatingList(true)}
       >
         <Text style={styles.buttonText}>Create A list</Text>
-      </TouchableOpacity> 
-      
+      </TouchableOpacity>
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -180,126 +232,156 @@ const BoardListsScreen = ({ route }) => {
             onChangeText={setNewListName}
           />
           <Button title="Create A List" onPress={createList} />
-          <Button title="Cancel" onPress={() => setIsModalForCreatingList(false)} />
+          <Button
+            title="Cancel"
+            onPress={() => setIsModalForCreatingList(false)}
+          />
         </View>
       </Modal>
-  
 
-    <ScrollView
-      horizontal={true}
-      style={styles.container}
-      showsHorizontalScrollIndicator={false}
-    >
-      {lists.map((list, index) => (
-        <View key={index} style={styles.listCard}>
-          <Text style={styles.listTitle}>{list.name}</Text>
-          <Button title="Delete List" onPress={() => { setListToDelete(list.id); setIsDeleteModalVisible(true); }} />
-          <Button title="Create Card" onPress={() => { setListForNewCard(list.id); setIsModalForCreatingCardVisible(true); }} />
-         
-          <ScrollView style={styles.cardsContainer}>
-            {list.cards?.map((card, cardIndex) => (
-              
-              <TouchableOpacity
-                key={cardIndex}
-                style={styles.card}
-                onPress={() => fetchCardDetails(card.id)}
-              >
-                <Text style={styles.cardTitle}>{card.name}</Text>
-              </TouchableOpacity>
-              
-            ))}
-          </ScrollView>
-        </View>
-      ))}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => {
-          setIsModalVisible(!isModalVisible);
-        }}
+      <ScrollView
+        horizontal={true}
+        style={styles.container}
+        showsHorizontalScrollIndicator={false}
       >
-        <View
-          style={styles.modalBackdrop}
-          onTouchStart={() => setIsModalVisible(false)}
+        {lists.map((list, index) => (
+          <View key={index} style={styles.listCard}>
+            <Text style={styles.listTitle}>{list.name}</Text>
+            <Button
+              title="Delete List"
+              onPress={() => {
+                setListToDelete(list.id);
+                setIsDeleteModalVisible(true);
+              }}
+            />
+            <Button
+              title="Create Card"
+              onPress={() => {
+                setListForNewCard(list.id);
+                setIsModalForCreatingCardVisible(true);
+              }}
+            />
+
+            <ScrollView style={styles.cardsContainer}>
+              {list.cards?.map((card, cardIndex) => (
+                <TouchableOpacity
+                  key={cardIndex}
+                  style={styles.card}
+                  onPress={() => fetchCardDetails(card.id)}
+                >
+                  <Text style={styles.cardTitle}>{card.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ))}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => {
+            setIsModalVisible(!isModalVisible);
+          }}
         >
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>{cardDetails?.name}</Text>
-            <Text>{cardDetails?.desc}</Text>
+            <TextInput
+              style={styles.input}
+              value={editableCardDetails?.name}
+              onChangeText={(text) => {
+                setEditableCardDetails({ ...editableCardDetails, name: text });
+                setHasChanges(text !== cardDetails.name);
+              }}
+            />
+            {hasChanges && (
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={saveCardDetails}
+              >
+                <Text style={styles.textStyle}>Save Changes</Text>
+              </TouchableOpacity>
+            )}
+            <Picker
+              selectedValue={selectedMemberId}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedMemberId(itemValue)
+              }
+            >
+              {members.map((member) => (
+                <Picker.Item
+                  key={member.id}
+                  label={member.fullName}
+                  value={member.id}
+                />
+              ))}
+            </Picker>
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => setIsModalVisible(!isModalVisible)}
             >
               <Text style={styles.textStyle}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isDeleteModalVisible}
+          onRequestClose={() => setIsDeleteModalVisible(false)}
+        >
+          <View style={styles.modalView}>
+            <Text>Are you sure you want to delete this list?</Text>
             <TouchableOpacity
-              style={[styles.button, styles.buttonDelete]}
-              onPress={() => setCardToDelete(cardDetails?.id)}
-             >
-            <Text style={styles.textStyle}>Delete the card</Text>
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => {
+                if (listToDelete) confirmDeleteList(listToDelete);
+              }}
+            >
+              <Text style={styles.textStyle}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setIsDeleteModalVisible(false)}
+            >
+              <Text style={styles.textStyle}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isDeleteModalVisible}
-      onRequestClose={() => setIsDeleteModalVisible(false)}
-      >
-      <View style={styles.modalView}>
-        <Text>Are you sure you want to delete this list?</Text>
-        <TouchableOpacity
-          style={[styles.button, styles.buttonClose]}
-          onPress={() => {
-            if(listToDelete)
-              confirmDeleteList(listToDelete);
-          }}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalForCreatingCardVisible}
+          onRequestClose={() => setIsModalForCreatingCardVisible(false)}
         >
-          <Text style={styles.textStyle}>Delete</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.buttonClose]}
-          onPress={() => setIsDeleteModalVisible(false)}
+          <View style={styles.modalView}>
+            <TextInput
+              style={styles.input}
+              placeholder="New Card Name"
+              value={newCardName}
+              onChangeText={setNewCardName}
+            />
+            <Button title="Create A Card" onPress={createCard} />
+            <Button
+              title="Cancel"
+              onPress={() => setIsModalForCreatingCardVisible(false)}
+            />
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={!!cardToDelete}
+          onRequestClose={() => setCardToDelete(null)}
         >
-          <Text style={styles.textStyle}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-     </Modal>
-
-     <Modal
-  animationType="slide"
-  transparent={true}
-  visible={isModalForCreatingCardVisible}
-  onRequestClose={() => setIsModalForCreatingCardVisible(false)}
->
-  <View style={styles.modalView}>
-    <TextInput
-      style={styles.input}
-      placeholder="New Card Name"
-      value={newCardName}
-      onChangeText={setNewCardName}
-    />
-    <Button title="Create A Card" onPress={createCard} />
-    <Button title="Cancel" onPress={() => setIsModalForCreatingCardVisible(false)} />
-  </View>
-</Modal>
-
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={!!cardToDelete}
-  onRequestClose={() => setCardToDelete(null)}
->
-  <View style={styles.modalView}>
-    <Text>Are you sure you want to delete this card?</Text>
-    <Button title="Delete" onPress={deleteCard} />
-    <Button title="Cancel" onPress={() => setCardToDelete(null)} />
-  </View>
-</Modal>
-      
-    </ScrollView>
+          <View style={styles.modalView}>
+            <Text>Are you sure you want to delete this card?</Text>
+            <Button title="Delete" onPress={deleteCard} />
+            <Button title="Cancel" onPress={() => setCardToDelete(null)} />
+          </View>
+        </Modal>
+      </ScrollView>
     </ScrollView>
   );
 };
@@ -426,8 +508,6 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
   },
-  
-
 });
 
 export default BoardListsScreen;
