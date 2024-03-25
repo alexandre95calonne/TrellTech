@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build android": "expo build:android",
-    "build ios": "expo build:ios"
+    "build ios": "expo build:ios",
+    "test": "jest"
   },
   "dependencies": {
     "@expo/html-elements": "^0.9.1",
@@ -27,7 +28,30 @@
     "react-native-screens": "~3.29.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^12.4.4",
+    "jest": "^29.7.0"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "react-native",
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+    },
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|@react-native-picker/picker|@react-native-community/.*|@react-native-async-storage/async-storage)/)"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }

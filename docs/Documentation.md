@@ -1,18 +1,38 @@
+## Documentation Technique TrellTech
 
-## Fonctions principales :
+# Introduction
 
-### Fonctions fetch
+Ce projet est une application mobile développée avec React Native. Il permet la gestion d'organisations et de tableaux Trello, incluant la création, la mise à jour et la suppression d'organisations, de tableaux, et de listes.
 
-Les fonctions fetch sont utilisées pour récupérer des données à partir d'une API. Elles utilisent généralement la méthode GET pour demander des données à un serveur. Dans le code que vous avez fourni, `fetchCardDetails` et `fetchListsAndCards` sont des exemples de fonctions fetch. Elles récupèrent respectivement les détails d'une carte et les listes et cartes d'un tableau à partir de l'API Trello.
+# Structure du Projet
 
-### Fonctions create
+Le projet est structuré en trois écrans principaux :
 
-Les fonctions create sont utilisées pour créer de nouvelles données dans une API. Elles utilisent généralement la méthode POST pour envoyer des données à un serveur. Dans le code que vous avez fourni, `createList` et `createCard` sont des exemples de fonctions create. Elles créent respectivement une nouvelle liste et une nouvelle carte sur le tableau Trello.
+HomeScreen: Gère les organisations.
+OrganizationBoardsScreen: Affiche les tableaux d'une organisation.
+BoardListsScreen: Montre les listes associées à un tableau.
+Fonctionnalités Clés
+Gestion des Organisations: Création, mise à jour, et suppression d'organisations.
+Gestion des Tableaux: Affichage, création, mise à jour, et suppression de tableaux au sein d'une organisation.
+Gestion des Listes: Affichage, création, mise à jour, et suppression de listes dans un tableau.
 
-### Fonctions delete
+# Dépendances Externes
 
-Les fonctions delete sont utilisées pour supprimer des données d'une API. Elles utilisent généralement la méthode DELETE pour demander la suppression de données à un serveur. Dans le code que vous avez fourni, `confirmDeleteList` et `deleteCard` sont des exemples de fonctions delete. Elles suppriment respectivement une liste et une carte du tableau Trello.
+axios: Utilisé pour les requêtes HTTP à l'API Trello.
+react-navigation: Gère la navigation entre les différents écrans de l'application.
 
-### Fonctions edit
+# Installation
 
-Les fonctions edit sont utilisées pour modifier des données existantes dans une API. Elles utilisent généralement la méthode PUT ou PATCH pour envoyer des données mises à jour à un serveur. Dans le code que vous avez fourni, il n'y a pas d'exemple de fonction edit. Cependant, une fonction edit typique pourrait ressembler à une fonction create, mais utiliserait une méthode PUT ou PATCH et inclurait l'ID de l'objet à modifier dans l'URL de la requête.
+Clonez le repository git.
+Exécutez npm install pour installer les dépendances.
+Lancez l'application avec npx react-native run-android ou npx react-native run-ios.
+
+# Utilisation
+
+HomeScreen: L'écran d'accueil liste toutes les organisations disponibles. Vous pouvez en créer de nouvelles, les modifier ou les supprimer.
+OrganizationBoardsScreen: Sélectionnez une organisation pour voir ses tableaux. Vous pouvez également ajouter, éditer ou supprimer des tableaux.
+BoardListsScreen: En sélectionnant un tableau, vous accéderez aux listes qu'il contient. Il est possible de créer, éditer ou supprimer des listes.
+
+# Conclusion
+
+Cette documentation technique fournit un aperçu de la structure et des fonctionnalités de l'application. Pour plus de détails, référez-vous au code source des différents écrans.

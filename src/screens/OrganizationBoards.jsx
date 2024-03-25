@@ -15,7 +15,6 @@ import { useNavigation } from "@react-navigation/native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 
 const OrganizationBoardsScreen = ({ route }) => {
-  // state
   const { organizationId } = route.params;
   const [boards, setBoards] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -35,13 +34,12 @@ const OrganizationBoardsScreen = ({ route }) => {
       );
       const boardsData = boardsResponse.data;
 
-      // Fetch members for each board
       const boardsWithMembers = await Promise.all(
         boardsData.map(async (board) => {
           const membersResponse = await axios.get(
             `https://api.trello.com/1/boards/${board.id}/members?key=${API_KEY}&token=${TOKEN}`
           );
-          return { ...board, members: membersResponse.data }; // Attach members to the board object
+          return { ...board, members: membersResponse.data };
         })
       );
 
@@ -51,7 +49,6 @@ const OrganizationBoardsScreen = ({ route }) => {
     }
   };
 
-  //[FEAT]: create a board
   const createBoard = async () => {
     if (newBoardName.trim()) {
       try {
@@ -100,7 +97,6 @@ const OrganizationBoardsScreen = ({ route }) => {
     }
   };
 
-  //[FEAT]: delete a board
   const confirmDeleteBoard = async (boardId) => {
     try {
       const response = await axios.delete(
@@ -148,7 +144,6 @@ const OrganizationBoardsScreen = ({ route }) => {
     fetchBoards();
   }, [organizationId]);
 
-  //[RETURN]: render the organization boards
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity
@@ -175,9 +170,6 @@ const OrganizationBoardsScreen = ({ route }) => {
             }
           >
             <Text style={styles.cardTitle}>{board.name}</Text>
-            <Text style={styles.cardSubtitle}>
-              Members: {board.members.length}
-            </Text>
           </TouchableOpacity>
         </Swipeable>
       ))}
@@ -257,8 +249,6 @@ const OrganizationBoardsScreen = ({ route }) => {
   );
 };
 
-// [CSS]: styling
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -322,6 +312,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: 80,
+    height: 55,
     padding: 15,
   },
   editButton: {
