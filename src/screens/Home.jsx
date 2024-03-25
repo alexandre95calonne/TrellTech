@@ -35,13 +35,12 @@ export default function HomeScreen() {
       );
       const orgsData = orgsResponse.data;
 
-      // Fetch members for each organization
       const orgsWithMembers = await Promise.all(
         orgsData.map(async (org) => {
           const membersResponse = await axios.get(
             `https://api.trello.com/1/organizations/${org.id}/members?key=${API_KEY}&token=${TOKEN}`
           );
-          return { ...org, members: membersResponse.data }; // Attach members to the organization object
+          return { ...org, members: membersResponse.data };
         })
       );
 
@@ -187,10 +186,7 @@ export default function HomeScreen() {
             <Text style={styles.cardTitle}>
               {organization.displayName || "No Name"}
             </Text>
-            {/* Display the number of members here */}
-            <Text style={styles.cardSubtitle}>
-              Members: {organization.members.length}
-            </Text>
+            <Text>Members: {organization.members.length}</Text>
           </TouchableOpacity>
         </Swipeable>
       ))}
@@ -392,6 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: 80,
+    height: 55,
     padding: 15,
   },
   editButton: {

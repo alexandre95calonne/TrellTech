@@ -14,6 +14,7 @@ import axios from "axios";
 import { API_KEY, TOKEN } from "@env";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -37,8 +38,72 @@ const BoardListsScreen = ({ route }) => {
   const [hasChanges, setHasChanges] = useState(false);
   const [members, setMembers] = useState([]);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editListName, setEditListName] = useState("");
+  const [listToEdit, setListToEdit] = useState(null);
 
-  console.log(members);
+  const archiveList = async (listId) => {
+    try {
+      const response = await axios.put(
+        `https://api.trello.com/1/lists/${listId}/closed?key=${API_KEY}&token=${TOKEN}`,
+        {
+          value: true,
+        }
+      );
+      if (response.data && response.status === 200) {
+        const updatedLists = lists.filter((list) => list.id !== listId);
+        setLists(updatedLists);
+      }
+    } catch (error) {
+      console.error("Error archiving list:", error);
+    }
+  };
+
+  const archiveCard = async (cardId) => {
+    try {
+      const response = await axios.put(
+        `https://api.trello.com/1/cards/${cardId}?key=${API_KEY}&token=${TOKEN}`,
+        { closed: true }
+      );
+      if (
+        response.data &&
+        (response.status === 200 || response.status === 204)
+      ) {
+        const updatedLists = lists.map((list) => {
+          list.cards = list.cards.filter((card) => card.id !== cardId);
+          return list;
+        });
+        setLists(updatedLists);
+        setIsModalVisible(false);
+      }
+    } catch (error) {
+      console.error("Error archiving card:", error);
+    }
+  };
+
+  const editListDetails = async (listId, newName) => {
+    try {
+      const response = await axios.put(
+        `https://api.trello.com/1/lists/${listId}?key=${API_KEY}&token=${TOKEN}`,
+        {
+          name: newName,
+        }
+      );
+      if (response.data) {
+        const updatedLists = lists.map((list) => {
+          if (list.id === listId) {
+            return { ...list, name: newName };
+          }
+          return list;
+        });
+        setLists(updatedLists);
+
+        console.log("List name updated successfully.");
+      }
+    } catch (error) {
+      console.error("Error updating list name:", error);
+    }
+  };
 
   const fetchBoardDetails = async () => {
     try {
@@ -50,22 +115,6 @@ const BoardListsScreen = ({ route }) => {
       setOrgId(orgId);
     } catch (error) {
       console.error("Error fetching board details:", error);
-    }
-  };
-
-  const fetchOrgMembers = async () => {
-    if (!orgId) {
-      console.log("Organization ID is not set.");
-      return;
-    }
-
-    try {
-      const membersResponse = await axios.get(
-        `https://api.trello.com/1/organizations/${orgId}/members?key=${API_KEY}&token=${TOKEN}`
-      );
-      setMembers(membersResponse.data);
-    } catch (error) {
-      console.error("Error fetching organization members:", error);
     }
   };
 
@@ -138,20 +187,6 @@ const BoardListsScreen = ({ route }) => {
     }
   };
 
-  const confirmDeleteList = async (listId) => {
-    try {
-      const response = await axios.delete(
-        `https://api.trello.com/1/lists/${listId}?key=${API_KEY}&token=${TOKEN}`
-      );
-      if (response.status === 200 || response.status === 204) {
-        setLists(lists.filter((list) => list.id !== listId));
-        setIsDeleteModalVisible(false);
-      }
-    } catch (error) {
-      console.error("Error deleting list: ", error);
-    }
-  };
-
   const createCard = async () => {
     if (newCardName.trim() && listForNewCard) {
       try {
@@ -178,28 +213,25 @@ const BoardListsScreen = ({ route }) => {
     }
   };
 
-  const deleteCard = async () => {
-    if (cardToDelete) {
-      try {
-        const response = await axios.delete(
-          `https://api.trello.com/1/cards/${cardToDelete}?key=${API_KEY}&token=${TOKEN}`
-        );
-        if (response.status === 200 || response.status === 204) {
-          const updatedLists = lists.map((list) => {
-            list.cards = list.cards.filter((card) => card.id !== cardToDelete);
-            return list;
-          });
-          setLists(updatedLists);
-          setCardToDelete(null);
-        }
-      } catch (error) {
-        console.error("Error deleting card: ", error);
-      }
+  const fetchOrgMembers = async () => {
+    if (!orgId) {
+      console.log("Organization ID is not set.");
+      return;
+    }
+
+    try {
+      const membersResponse = await axios.get(
+        `https://api.trello.com/1/organizations/${orgId}/members?key=${API_KEY}&token=${TOKEN}`
+      );
+      setMembers(membersResponse.data);
+    } catch (error) {
+      console.error("Error fetching organization members:", error);
     }
   };
 
   useEffect(() => {
     fetchListsAndCards();
+
     fetchBoardDetails();
   }, [boardId]);
 
@@ -207,15 +239,24 @@ const BoardListsScreen = ({ route }) => {
     if (orgId) {
       fetchOrgMembers();
     }
+    console.log(members);
   }, [orgId]);
 
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity
-        style={styles.button}
+        style={styles.createListButton}
         onPress={() => setIsModalForCreatingList(true)}
       >
-        <Text style={styles.buttonText}>Create A list</Text>
+        <View style={styles.createListContent}>
+          <Icon
+            name="plus"
+            size={20}
+            color="#007bff"
+            style={styles.createListIcon}
+          />
+          <Text style={styles.createListText}>Create a List</Text>
+        </View>
       </TouchableOpacity>
 
       <Modal
@@ -246,21 +287,41 @@ const BoardListsScreen = ({ route }) => {
       >
         {lists.map((list, index) => (
           <View key={index} style={styles.listCard}>
-            <Text style={styles.listTitle}>{list.name}</Text>
-            <Button
-              title="Delete List"
-              onPress={() => {
-                setListToDelete(list.id);
-                setIsDeleteModalVisible(true);
-              }}
-            />
-            <Button
-              title="Create Card"
-              onPress={() => {
-                setListForNewCard(list.id);
-                setIsModalForCreatingCardVisible(true);
-              }}
-            />
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>{list.name}</Text>
+              <View style={styles.iconsContainer}>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => {
+                    setListToDelete(list.id);
+                    setIsDeleteModalVisible(true);
+                  }}
+                >
+                  <Icon name="trash" size={20} color="#dc3545" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => {
+                    setListForNewCard(list.id);
+                    setIsModalForCreatingCardVisible(true);
+                  }}
+                >
+                  <Icon name="plus" size={20} color="#007bff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => {
+                    setListToEdit(list.id);
+                    setEditListName(list.name);
+                    setIsEditModalVisible(true);
+                  }}
+                >
+                  <Icon name="edit" size={20} color="#ffc107" />
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <ScrollView style={styles.cardsContainer}>
               {list.cards?.map((card, cardIndex) => (
@@ -284,14 +345,26 @@ const BoardListsScreen = ({ route }) => {
           }}
         >
           <View style={styles.modalView}>
-            <TextInput
-              style={styles.input}
-              value={editableCardDetails?.name}
-              onChangeText={(text) => {
-                setEditableCardDetails({ ...editableCardDetails, name: text });
-                setHasChanges(text !== cardDetails.name);
-              }}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={editableCardDetails?.name}
+                onChangeText={(text) => {
+                  setEditableCardDetails({
+                    ...editableCardDetails,
+                    name: text,
+                  });
+                  setHasChanges(text !== cardDetails.name);
+                }}
+              />
+              <TouchableOpacity
+                style={styles.archiveIcon}
+                onPress={() => archiveCard(editableCardDetails.id)}
+              >
+                <Icon name="archive" size={20} color="#6c757d" />
+              </TouchableOpacity>
+            </View>
+
             {hasChanges && (
               <TouchableOpacity
                 style={[styles.button, styles.buttonSave]}
@@ -300,20 +373,7 @@ const BoardListsScreen = ({ route }) => {
                 <Text style={styles.textStyle}>Save Changes</Text>
               </TouchableOpacity>
             )}
-            <Picker
-              selectedValue={selectedMemberId}
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedMemberId(itemValue)
-              }
-            >
-              {members.map((member) => (
-                <Picker.Item
-                  key={member.id}
-                  label={member.fullName}
-                  value={member.id}
-                />
-              ))}
-            </Picker>
+
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => setIsModalVisible(!isModalVisible)}
@@ -330,14 +390,17 @@ const BoardListsScreen = ({ route }) => {
           onRequestClose={() => setIsDeleteModalVisible(false)}
         >
           <View style={styles.modalView}>
-            <Text>Are you sure you want to delete this list?</Text>
+            <Text>Are you sure you want to archive this list?</Text>
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => {
-                if (listToDelete) confirmDeleteList(listToDelete);
+                if (listToDelete) {
+                  archiveList(listToDelete);
+                  setIsDeleteModalVisible(false);
+                }
               }}
             >
-              <Text style={styles.textStyle}>Delete</Text>
+              <Text style={styles.textStyle}>Archive</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
@@ -372,13 +435,27 @@ const BoardListsScreen = ({ route }) => {
         <Modal
           animationType="slide"
           transparent={true}
-          visible={!!cardToDelete}
-          onRequestClose={() => setCardToDelete(null)}
+          visible={isEditModalVisible}
+          onRequestClose={() => setIsEditModalVisible(false)}
         >
           <View style={styles.modalView}>
-            <Text>Are you sure you want to delete this card?</Text>
-            <Button title="Delete" onPress={deleteCard} />
-            <Button title="Cancel" onPress={() => setCardToDelete(null)} />
+            <TextInput
+              style={styles.input}
+              placeholder="Edit List Name"
+              value={editListName}
+              onChangeText={setEditListName}
+            />
+            <Button
+              title="Save Changes"
+              onPress={() => {
+                editListDetails(listToEdit, editListName);
+                setIsEditModalVisible(false);
+              }}
+            />
+            <Button
+              title="Cancel"
+              onPress={() => setIsEditModalVisible(false)}
+            />
           </View>
         </Modal>
       </ScrollView>
@@ -509,5 +586,61 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 });
+
+styles.listHeader = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+};
+
+styles.iconsContainer = {
+  flexDirection: "row",
+  alignItems: "center",
+};
+
+styles.iconButton = {
+  marginLeft: 10,
+};
+
+styles.createListButton = {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingVertical: 10,
+  paddingHorizontal: 15,
+  marginVertical: 10,
+  backgroundColor: "#f0f0f0",
+  borderRadius: 20,
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  shadowColor: "#000",
+  shadowOffset: { height: 0, width: 0 },
+  elevation: 3,
+};
+
+styles.createListContent = {
+  flexDirection: "row",
+  alignItems: "center",
+};
+
+styles.createListIcon = {
+  marginRight: 5,
+};
+
+styles.createListText = {
+  color: "#007bff",
+  fontWeight: "bold",
+};
+
+styles.inputContainer = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+};
+
+styles.archiveIcon = {
+  padding: 10,
+};
 
 export default BoardListsScreen;
