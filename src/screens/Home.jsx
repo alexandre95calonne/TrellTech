@@ -186,7 +186,6 @@ export default function HomeScreen() {
             <Text style={styles.cardTitle}>
               {organization.displayName || "No Name"}
             </Text>
-            <Text>Members: {organization.members.length}</Text>
           </TouchableOpacity>
         </Swipeable>
       ))}
