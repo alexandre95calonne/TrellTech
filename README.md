@@ -1,8 +1,8 @@
 # ✨ Trelltech ✨
 
-Trelltech est un projet scolaire où en équipe de deux développeurs nous avions pouur but de faire un clone de Trello sur une application mobile.
+Trelltech is a school project where a team of two developers aimed to create a Trello clone on a mobile application.
 
-Il est ainsi possible de faire un CRUD sur ces éléments : les workspaces, les boards et les cards.
+It is possible to perform CRUD operations on these elements: workspaces, boards, and cards.
 
 ## Languages and tools 🛠
 
@@ -10,15 +10,15 @@ Il est ainsi possible de faire un CRUD sur ces éléments : les workspaces, les 
 
 ## Setup et Installation 👨‍💻
 
-_Soyez sûr d'avoir installé Node.js sur votre ordinateur_
+_Make sure Node.js is installed on your computer_
 
 
-1. Clonez le repo en local.
-2. Installer les nombreuses dépendances en utilisant:
+1. Clone the repository locally.
+2. Install the required dependencies using :
 ```
 npm install
 ```
-3. Démarrer l'application en utilisant :
+3. Start the application using :
 
 _IOS_
 
